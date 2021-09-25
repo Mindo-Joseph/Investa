@@ -1,11 +1,9 @@
 // We will be using Solidity version 0.5.4
 pragma solidity 0.5.4;
-// Importing OpenZeppelin's SafeMath Implementation
-import 'https://github.com/OpenZeppelin/openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 
 contract Crowdfunding {
-    using SafeMath for uint256;
+   
 
     // List of existing projects
     Project[] private projects;
@@ -32,8 +30,9 @@ contract Crowdfunding {
         uint durationInDays,
         uint amountToRaise
     ) external {
-        uint raiseUntil = now.add(durationInDays.mul(1 days));
-        Project newProject = new Project(msg.sender, title, description, raiseUntil, amountToRaise);
+        uint raiseUntil = block.timestamp+(durationInDays*(1 days));
+        address payable owner = msg.sender;
+        Project newProject = new Project(owner, title, description, raiseUntil, amountToRaise);
         projects.push(newProject);
         emit ProjectStarted(
             address(newProject),
@@ -55,7 +54,7 @@ contract Crowdfunding {
 
 
 contract Project {
-    using SafeMath for uint256;
+   
     
     // Data structures
     enum State {
@@ -124,10 +123,10 @@ contract Project {
         if (currentBalance >= amountGoal) {
             state = State.Successful;
             payOut();
-        } else if (now > raiseBy)  {
+        } else if (block.timestamp > raiseBy)  {
             state = State.Expired;
         }
-        completeAt = now;
+        completeAt = block.timestamp;
     }
 
     /** @dev Function to give the received funds to project starter.
